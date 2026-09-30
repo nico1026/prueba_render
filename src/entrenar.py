@@ -10,7 +10,7 @@ from pathlib import Path
 import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import RepeatedStratifiedKFold, cross_val_score
 from sklearn.pipeline import FeatureUnion, Pipeline
 
 from src.datos import cargar
@@ -51,7 +51,14 @@ def main():
     # Validación cruzada: entrena 5 veces, cada una dejando fuera un 20% para
     # calificarse. Es el número honesto — el accuracy sobre los datos de
     # entrenamiento siempre miente hacia arriba.
-    notas = cross_val_score(modelo, textos, etiquetas, cv=5)
+    #
+    # shuffle=True no es un detalle: el dataset está ordenado (positivos y
+    # luego negativos, y por grupos de palabra). Sin mezclar, cada fold recibe
+    # un bloque temático entero y el resultado baja varios puntos por un
+    # accidente del orden del archivo. n_repeats=6 promedia 6 mezclas
+    # distintas, porque con 210 frases una sola partición es muy ruidosa.
+    cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=6, random_state=0)
+    notas = cross_val_score(modelo, textos, etiquetas, cv=cv)
     print(f"Accuracy (validación cruzada): {notas.mean():.1%} ± {notas.std():.1%}")
 
     # Ya medido, entrenamos con todo para el modelo final.

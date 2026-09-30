@@ -1,0 +1,9 @@
+# El modelo es un artefacto de build: lo genera `python -m src.entrenar`
+# (y el Dockerfile lo hace solo). No va en git.
+*.joblib
+
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
